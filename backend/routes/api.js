@@ -3,7 +3,7 @@ const router = express.Router();
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
-const Report = require('../models/Report');
+const db = require('../firebase'); // Firestore instance
 
 // Setup upload directory
 const uploadDir = path.join(__dirname, '../uploads');
@@ -33,18 +33,23 @@ router.post('/reports', upload.single('image'), async (req, res) => {
       imagePath = `/uploads/${req.file.filename}`;
     }
 
-    const newReport = new Report({
+    const reportData = {
       name,
       mobile,
       location,
       category,
       problemType,
       issue,
-      image: imagePath
-    });
+      image: imagePath,
+      status: 'Pending',
+      createdAt: new Date()
+    };
 
-    await newReport.save();
-    res.status(201).json({ message: 'Report submitted successfully', report: newReport });
+    const docRef = await db.collection('reports').add(reportData);
+    res.status(201).json({ 
+      message: 'Report submitted successfully', 
+      report: { id: docRef.id, ...reportData } 
+    });
   } catch (error) {
     console.error('Error saving report:', error);
     res.status(500).json({ message: 'Server Error' });
@@ -54,9 +59,15 @@ router.post('/reports', upload.single('image'), async (req, res) => {
 // Get all reports (for Admin Dashboard)
 router.get('/reports', async (req, res) => {
   try {
-    const reports = await Report.find().sort({ createdAt: -1 });
+    const snapshot = await db.collection('reports').orderBy('createdAt', 'desc').get();
+    const reports = snapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data(),
+      createdAt: doc.data().createdAt.toDate() // Convert Firestore timestamp to JS Date
+    }));
     res.json(reports);
   } catch (error) {
+    console.error('Error fetching reports:', error);
     res.status(500).json({ message: 'Server Error' });
   }
 });
@@ -69,18 +80,17 @@ router.put('/reports/:id/status', async (req, res) => {
       return res.status(400).json({ message: 'Invalid status' });
     }
 
-    const report = await Report.findByIdAndUpdate(
-      req.params.id,
-      { status },
-      { new: true }
-    );
-    
-    if (!report) {
+    const reportRef = db.collection('reports').doc(req.params.id);
+    const doc = await reportRef.get();
+
+    if (!doc.exists) {
       return res.status(404).json({ message: 'Report not found' });
     }
 
-    res.json(report);
+    await reportRef.update({ status });
+    res.json({ id: doc.id, ...doc.data(), status });
   } catch (error) {
+    console.error('Error updating status:', error);
     res.status(500).json({ message: 'Server Error' });
   }
 });
@@ -88,12 +98,17 @@ router.put('/reports/:id/status', async (req, res) => {
 // Delete a report (Admin only)
 router.delete('/reports/:id', async (req, res) => {
   try {
-    const report = await Report.findByIdAndDelete(req.params.id);
-    if (!report) {
+    const reportRef = db.collection('reports').doc(req.params.id);
+    const doc = await reportRef.get();
+
+    if (!doc.exists) {
       return res.status(404).json({ message: 'Report not found' });
     }
+
+    await reportRef.delete();
     res.json({ message: 'Report deleted successfully' });
   } catch (error) {
+    console.error('Error deleting report:', error);
     res.status(500).json({ message: 'Server Error' });
   }
 });
@@ -119,3 +134,4 @@ router.post('/public-login', (req, res) => {
 });
 
 module.exports = router;
+

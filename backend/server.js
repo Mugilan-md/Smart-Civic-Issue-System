@@ -1,9 +1,8 @@
 const express = require('express');
-const mongoose = require('mongoose');
 const cors = require('cors');
 const path = require('path');
 const fs = require('fs');
-const { MongoMemoryServer } = require('mongodb-memory-server');
+const db = require('./firebase'); // Import Firestore
 const apiRoutes = require('./routes/api');
 
 const app = express();
@@ -17,47 +16,15 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 // Routes
 app.use('/api', apiRoutes);
 
-// Persistent data directory
-const dataDir = path.join(__dirname, 'data');
-if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir);
+// Simple health check
+app.get('/', (req, res) => {
+  res.send('Smart Civic API is running with Firestore');
+});
 
-let mongoServer;
+app.listen(PORT, () => {
+  console.log(`--------------------------------------------------`);
+  console.log(`🚀 Server running on port ${PORT}`);
+  console.log(`🔥 Connected to Google Firestore`);
+  console.log(`--------------------------------------------------`);
+});
 
-const startServer = async () => {
-  try {
-    // Check for lock file and remove it if it exists (prevents startup issues)
-    const lockFile = path.join(dataDir, 'mongod.lock');
-    if (fs.existsSync(lockFile)) {
-      try {
-        fs.unlinkSync(lockFile);
-        console.log('Removed old MongoDB lock file.');
-      } catch (err) {
-        console.warn('Could not remove lock file, it might be in use:', err.message);
-      }
-    }
-
-    // Use a fixed dbPath so data persists across restarts
-    mongoServer = await MongoMemoryServer.create({
-      instance: {
-        dbPath: dataDir,
-        storageEngine: 'wiredTiger',
-      },
-    });
-    const mongoUri = mongoServer.getUri();
-
-    await mongoose.connect(mongoUri, { dbName: 'civic_db' });
-    console.log('--------------------------------------------------');
-    console.log(`🚀 MongoDB connected (PERSISTENT)`);
-    console.log(`📂 Data directory: ${dataDir}`);
-    console.log(`🔗 URI: ${mongoUri}`);
-    console.log('--------------------------------------------------');
-
-    app.listen(PORT, () => {
-      console.log(`✅ Server running on port ${PORT}`);
-    });
-  } catch (error) {
-    console.error('❌ Error starting server:', error);
-  }
-};
-
-startServer();

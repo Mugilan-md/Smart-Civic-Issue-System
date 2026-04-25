@@ -20,7 +20,8 @@ function PublicLogin() {
     setError('');
     setLoading(true);
     try {
-      const response = await axios.post('http://localhost:5000/api/public-login', credentials);
+      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+      const response = await axios.post(`${apiUrl}/api/public-login`, credentials);
       sessionStorage.setItem('publicToken', response.data.token);
       navigate('/');
     } catch (err) {

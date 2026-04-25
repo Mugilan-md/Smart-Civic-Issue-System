@@ -144,7 +144,7 @@ function DetailDrawer({ report, onClose, onStatusChange, onDelete }) {
         {/* image */}
         {report.image ? (
           <img
-            src={`http://localhost:5000${report.image}`}
+            src={`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}${report.image}`}
             alt={report.category}
             style={{ width: '100%', height: 220, objectFit: 'cover' }}
             onError={(e) => { e.target.style.display = 'none'; }}
@@ -170,7 +170,7 @@ function DetailDrawer({ report, onClose, onStatusChange, onDelete }) {
             <select
               className="status-select"
               value={report.status}
-              onChange={(e) => onStatusChange(report._id, e.target.value)}
+              onChange={(e) => onStatusChange(report.id, e.target.value)}
               style={{ flex: 1, minWidth: 140 }}
             >
               <option value="Pending">Pending</option>
@@ -239,7 +239,7 @@ function DetailDrawer({ report, onClose, onStatusChange, onDelete }) {
 
           {/* Delete button */}
           <button
-            onClick={() => onDelete(report._id)}
+            onClick={() => onDelete(report.id)}
             style={{
               width: '100%', padding: '0.65rem', marginTop: '0.5rem',
               background: 'var(--danger-bg)', color: 'var(--danger)',
@@ -284,7 +284,8 @@ function AdminDashboard() {
   const fetchReports = useCallback(async (isRefresh = false) => {
     if (isRefresh) setRefreshing(true);
     try {
-      const response = await axios.get('http://localhost:5000/api/reports');
+      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+      const response = await axios.get(`${apiUrl}/api/reports`);
       setReports(response.data);
     } catch (error) {
       console.error('Error fetching reports', error);
@@ -306,9 +307,10 @@ function AdminDashboard() {
 
   const updateStatus = async (id, newStatus) => {
     try {
-      await axios.put(`http://localhost:5000/api/reports/${id}/status`, { status: newStatus });
-      setReports(prev => prev.map(r => r._id === id ? { ...r, status: newStatus } : r));
-      if (selected?._id === id) setSelected(prev => ({ ...prev, status: newStatus }));
+      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+      await axios.put(`${apiUrl}/api/reports/${id}/status`, { status: newStatus });
+      setReports(prev => prev.map(r => r.id === id ? { ...r, status: newStatus } : r));
+      if (selected?.id === id) setSelected(prev => ({ ...prev, status: newStatus }));
     } catch (error) {
       console.error('Error updating status', error);
       alert('Failed to update status. Please try again.');
@@ -339,9 +341,10 @@ function AdminDashboard() {
   const deleteReport = async (id) => {
     if (!window.confirm('Delete this report? This cannot be undone.')) return;
     try {
-      await axios.delete(`http://localhost:5000/api/reports/${id}`);
-      setReports(prev => prev.filter(r => r._id !== id));
-      if (selected?._id === id) setSelected(null);
+      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+      await axios.delete(`${apiUrl}/api/reports/${id}`);
+      setReports(prev => prev.filter(r => r.id !== id));
+      if (selected?.id === id) setSelected(null);
     } catch (error) {
       console.error('Error deleting report', error);
       alert('Failed to delete report.');
@@ -547,7 +550,7 @@ function AdminDashboard() {
 
               return (
                 <div
-                  key={report._id}
+                  key={report.id}
                   className="report-row"
                   onClick={() => setSelected(report)}
                   style={{
@@ -556,7 +559,7 @@ function AdminDashboard() {
                     alignItems: 'center',
                     padding: '0.75rem 1.5rem',
                     borderBottom: idx < filtered.length - 1 ? '1px solid var(--border)' : 'none',
-                    background: selected?._id === report._id ? '#f0f6ff' : 'transparent',
+                    background: selected?.id === report.id ? '#f0f6ff' : 'transparent',
                     gap: '0.5rem'
                   }}
                 >
@@ -601,7 +604,7 @@ function AdminDashboard() {
                   {/* Arrow */}
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', flexShrink: 0 }}>
                     <button
-                      onClick={(e) => { e.stopPropagation(); deleteReport(report._id); }}
+                      onClick={(e) => { e.stopPropagation(); deleteReport(report.id); }}
                       title="Delete report"
                       style={{
                         width: 26, height: 26, borderRadius: '50%',
