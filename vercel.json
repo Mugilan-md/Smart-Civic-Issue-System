@@ -1,4 +1,5 @@
 {
+  "version": 2,
   "rewrites": [
     { "source": "/api/(.*)", "destination": "/backend/server.js" },
     { "source": "/uploads/(.*)", "destination": "/backend/uploads/$1" },
