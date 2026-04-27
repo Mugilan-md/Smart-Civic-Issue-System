@@ -99,7 +99,7 @@ function PublicForm() {
     if (image) submitData.append('image', image);
 
     try {
-      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+      const apiUrl = import.meta.env.VITE_API_URL || window.location.origin;
       await axios.post(`${apiUrl}/api/reports`, submitData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
