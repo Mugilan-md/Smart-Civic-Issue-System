@@ -20,7 +20,7 @@ function PublicLogin() {
     setError('');
     setLoading(true);
     try {
-      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+      const apiUrl = import.meta.env.VITE_API_URL || 'https://civicx-theta.vercel.app';
       const response = await axios.post(`${apiUrl}/api/public-login`, credentials);
       sessionStorage.setItem('publicToken', response.data.token);
       navigate('/');
