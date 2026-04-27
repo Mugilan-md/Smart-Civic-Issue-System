@@ -234,8 +234,19 @@ function PublicForm() {
                       navigator.geolocation.getCurrentPosition(
                         (position) => {
                           const { latitude, longitude } = position.coords;
-                          setFormData(prev => ({ ...prev, location: `${latitude.toFixed(6)}, ${longitude.toFixed(6)}` }));
-                          setLocating(false);
+                          // Use OpenStreetMap Nominatim for Reverse Geocoding
+                          fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`)
+                            .then(res => res.json())
+                            .then(data => {
+                              const address = data.display_name || `${latitude.toFixed(6)}, ${longitude.toFixed(6)}`;
+                              setFormData(prev => ({ ...prev, location: address }));
+                              setLocating(false);
+                            })
+                            .catch(err => {
+                              console.error("Geocoding error", err);
+                              setFormData(prev => ({ ...prev, location: `${latitude.toFixed(6)}, ${longitude.toFixed(6)}` }));
+                              setLocating(false);
+                            });
                         },
                         (error) => {
                           console.error("Error getting location", error);
