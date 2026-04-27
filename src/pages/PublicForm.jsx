@@ -67,6 +67,7 @@ function PublicForm() {
   const [preview, setPreview] = useState('');
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [locating, setLocating] = useState(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -226,33 +227,40 @@ function PublicForm() {
                 </span>
                 <button
                   type="button"
+                  disabled={locating}
                   onClick={() => {
                     if (navigator.geolocation) {
+                      setLocating(true);
                       navigator.geolocation.getCurrentPosition(
                         (position) => {
                           const { latitude, longitude } = position.coords;
                           setFormData(prev => ({ ...prev, location: `${latitude.toFixed(6)}, ${longitude.toFixed(6)}` }));
+                          setLocating(false);
                         },
                         (error) => {
                           console.error("Error getting location", error);
-                          alert("Unable to retrieve your location. Please enter it manually.");
-                        }
+                          setLocating(false);
+                          let msg = "Unable to retrieve your location.";
+                          if (error.code === 1) msg = "Location access denied. Please enable it in browser settings.";
+                          alert(msg);
+                        },
+                        { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
                       );
                     } else {
                       alert("Geolocation is not supported by your browser.");
                     }
                   }}
                   style={{
-                    background: 'none', border: 'none', color: 'var(--accent)',
-                    fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer',
+                    background: locating ? 'var(--accent-light)' : 'none', 
+                    border: 'none', color: 'var(--accent)',
+                    fontSize: '0.75rem', fontWeight: 600, cursor: locating ? 'wait' : 'pointer',
                     display: 'flex', alignItems: 'center', gap: '0.2rem',
                     padding: '0.2rem 0.5rem', borderRadius: '4px',
                     transition: 'background 0.2s'
                   }}
-                  onMouseOver={e => e.currentTarget.style.background = 'var(--accent-light)'}
-                  onMouseOut={e => e.currentTarget.style.background = 'none'}
                 >
-                  <MapPin size={12} /> Get Live Location
+                  <MapPin size={12} className={locating ? "animate-pulse" : ""} /> 
+                  {locating ? "Getting Location..." : "Get Live Location"}
                 </button>
               </div>
             </label>
