@@ -21,10 +21,14 @@ app.get('/', (req, res) => {
   res.send('Smart Civic API is running with Firestore');
 });
 
-app.listen(PORT, () => {
-  console.log(`--------------------------------------------------`);
-  console.log(`🚀 Server running on port ${PORT}`);
-  console.log(`🔥 Connected to Google Firestore`);
-  console.log(`--------------------------------------------------`);
-});
+if (process.env.NODE_ENV !== 'production') {
+  app.listen(PORT, () => {
+    console.log(`--------------------------------------------------`);
+    console.log(`🚀 Server running on port ${PORT}`);
+    console.log(`🔥 Connected to Google Firestore`);
+    console.log(`--------------------------------------------------`);
+  });
+}
+
+module.exports = app;
 
