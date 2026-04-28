@@ -1,55 +1,62 @@
 const express = require('express');
 const router = express.Router();
 const multer = require('multer');
-const db = require('../firebase');
 
-// Use memory storage (no disk writes — Vercel is read-only)
-const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 10 * 1024 * 1024 } });
+// Use memory storage (Vercel filesystem is read-only)
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB
+});
 
-// Create a new report
-router.post('/reports', upload.single('image'), async (req, res) => {
-  if (!db) {
-    return res.status(503).json({ message: 'Database not initialized. Please check backend logs.' });
+// Lazy-load db so a Firebase init error doesn't crash the whole module
+function getDb() {
+  try {
+    return require('../firebase');
+  } catch (e) {
+    console.error('Failed to load firebase module:', e.message);
+    return null;
   }
-  console.log('Received report submission attempt...');
+}
+
+// ── POST /api/reports ─────────────────────────────────────────────────────────
+router.post('/reports', upload.single('image'), async (req, res) => {
+  const db = getDb();
+  if (!db) {
+    return res.status(503).json({ message: 'Database not initialized. Please set FIREBASE_SERVICE_ACCOUNT in Vercel environment variables.' });
+  }
   try {
     const { name, mobile, location, category, problemType, issue } = req.body;
     let imageBase64 = null;
 
     if (req.file) {
-      console.log(`Image received: ${req.file.originalname} (${req.file.size} bytes)`);
-      // Convert to base64 string so it can be stored in Firestore
       imageBase64 = `data:${req.file.mimetype};base64,${req.file.buffer.toString('base64')}`;
-    } else {
-      console.log('No image attached to report.');
+      console.log(`Image received: ${req.file.originalname} (${req.file.size} bytes)`);
     }
 
     const reportData = {
-      name,
-      mobile,
-      location,
-      category,
-      problemType,
-      issue,
+      name: name || '',
+      mobile: mobile || '',
+      location: location || '',
+      category: category || '',
+      problemType: problemType || '',
+      issue: issue || '',
       image: imageBase64,
       status: 'Pending',
-      createdAt: new Date()
+      createdAt: new Date(),
     };
 
     const docRef = await db.collection('reports').add(reportData);
-    console.log(`Report successfully saved with ID: ${docRef.id}`);
-    res.status(201).json({
-      message: 'Report submitted successfully',
-      report: { id: docRef.id, ...reportData }
-    });
+    console.log('Report saved:', docRef.id);
+    res.status(201).json({ message: 'Report submitted successfully', report: { id: docRef.id, ...reportData } });
   } catch (error) {
     console.error('Error saving report:', error);
     res.status(500).json({ message: 'Server Error', error: error.message });
   }
 });
 
-// Get all reports (for Admin Dashboard)
+// ── GET /api/reports ──────────────────────────────────────────────────────────
 router.get('/reports', async (req, res) => {
+  const db = getDb();
   if (!db) {
     return res.status(503).json({ message: 'Database not initialized.' });
   }
@@ -58,7 +65,7 @@ router.get('/reports', async (req, res) => {
     const reports = snapshot.docs.map(doc => ({
       id: doc.id,
       ...doc.data(),
-      createdAt: doc.data().createdAt?.toDate ? doc.data().createdAt.toDate() : doc.data().createdAt
+      createdAt: doc.data().createdAt?.toDate ? doc.data().createdAt.toDate() : doc.data().createdAt,
     }));
     res.json(reports);
   } catch (error) {
@@ -67,21 +74,18 @@ router.get('/reports', async (req, res) => {
   }
 });
 
-// Update report status (for Admin Dashboard)
+// ── PUT /api/reports/:id/status ───────────────────────────────────────────────
 router.put('/reports/:id/status', async (req, res) => {
+  const db = getDb();
+  if (!db) return res.status(503).json({ message: 'Database not initialized.' });
   try {
     const { status } = req.body;
     if (!['Pending', 'In Progress', 'Solved'].includes(status)) {
       return res.status(400).json({ message: 'Invalid status' });
     }
-
     const reportRef = db.collection('reports').doc(req.params.id);
     const doc = await reportRef.get();
-
-    if (!doc.exists) {
-      return res.status(404).json({ message: 'Report not found' });
-    }
-
+    if (!doc.exists) return res.status(404).json({ message: 'Report not found' });
     await reportRef.update({ status });
     res.json({ id: doc.id, ...doc.data(), status });
   } catch (error) {
@@ -90,16 +94,14 @@ router.put('/reports/:id/status', async (req, res) => {
   }
 });
 
-// Delete a report (Admin only)
+// ── DELETE /api/reports/:id ───────────────────────────────────────────────────
 router.delete('/reports/:id', async (req, res) => {
+  const db = getDb();
+  if (!db) return res.status(503).json({ message: 'Database not initialized.' });
   try {
     const reportRef = db.collection('reports').doc(req.params.id);
     const doc = await reportRef.get();
-
-    if (!doc.exists) {
-      return res.status(404).json({ message: 'Report not found' });
-    }
-
+    if (!doc.exists) return res.status(404).json({ message: 'Report not found' });
     await reportRef.delete();
     res.json({ message: 'Report deleted successfully' });
   } catch (error) {
@@ -108,7 +110,7 @@ router.delete('/reports/:id', async (req, res) => {
   }
 });
 
-// Admin login
+// ── POST /api/login (Admin) ───────────────────────────────────────────────────
 router.post('/login', (req, res) => {
   const { username, password } = req.body;
   if (username === 'mugi123' && password === '123456789') {
@@ -118,7 +120,7 @@ router.post('/login', (req, res) => {
   }
 });
 
-// Public (community) login
+// ── POST /api/public-login ────────────────────────────────────────────────────
 router.post('/public-login', (req, res) => {
   const { username, password } = req.body;
   if (username === 'publicorg' && password === 'public777') {
