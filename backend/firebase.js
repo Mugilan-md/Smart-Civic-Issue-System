@@ -12,7 +12,8 @@ if (process.env.FIREBASE_SERVICE_ACCOUNT) {
 } else {
   // Use local file in development
   try {
-    serviceAccount = require('./serviceAccountKey.json');
+    const keyPath = path.join(__dirname, 'serviceAccountKey.json');
+    serviceAccount = require(keyPath);
   } catch (err) {
     console.warn('Firebase key file not found. Set FIREBASE_SERVICE_ACCOUNT env var for production.');
   }
