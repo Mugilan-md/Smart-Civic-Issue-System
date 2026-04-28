@@ -1,36 +1,20 @@
 const express = require('express');
 const router = express.Router();
 const multer = require('multer');
-const path = require('path');
-const fs = require('fs');
-const db = require('../firebase'); // Firestore instance
+const db = require('../firebase');
 
-// Setup upload directory
-const uploadDir = path.join(__dirname, '../uploads');
-if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir);
-}
-
-// Configure multer
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, uploadDir);
-  },
-  filename: function (req, file, cb) {
-    cb(null, Date.now() + path.extname(file.originalname));
-  }
-});
-
-const upload = multer({ storage: storage });
+// Use memory storage (no disk writes — Vercel is read-only)
+const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 10 * 1024 * 1024 } });
 
 // Create a new report
 router.post('/reports', upload.single('image'), async (req, res) => {
   try {
     const { name, mobile, location, category, problemType, issue } = req.body;
-    let imagePath = null;
-    
+    let imageBase64 = null;
+
     if (req.file) {
-      imagePath = `/uploads/${req.file.filename}`;
+      // Convert to base64 string so it can be stored in Firestore
+      imageBase64 = `data:${req.file.mimetype};base64,${req.file.buffer.toString('base64')}`;
     }
 
     const reportData = {
@@ -40,19 +24,19 @@ router.post('/reports', upload.single('image'), async (req, res) => {
       category,
       problemType,
       issue,
-      image: imagePath,
+      image: imageBase64,
       status: 'Pending',
       createdAt: new Date()
     };
 
     const docRef = await db.collection('reports').add(reportData);
-    res.status(201).json({ 
-      message: 'Report submitted successfully', 
-      report: { id: docRef.id, ...reportData } 
+    res.status(201).json({
+      message: 'Report submitted successfully',
+      report: { id: docRef.id, ...reportData }
     });
   } catch (error) {
     console.error('Error saving report:', error);
-    res.status(500).json({ message: 'Server Error' });
+    res.status(500).json({ message: 'Server Error', error: error.message });
   }
 });
 
@@ -63,12 +47,12 @@ router.get('/reports', async (req, res) => {
     const reports = snapshot.docs.map(doc => ({
       id: doc.id,
       ...doc.data(),
-      createdAt: doc.data().createdAt.toDate() // Convert Firestore timestamp to JS Date
+      createdAt: doc.data().createdAt?.toDate ? doc.data().createdAt.toDate() : doc.data().createdAt
     }));
     res.json(reports);
   } catch (error) {
     console.error('Error fetching reports:', error);
-    res.status(500).json({ message: 'Server Error' });
+    res.status(500).json({ message: 'Server Error', error: error.message });
   }
 });
 
@@ -91,7 +75,7 @@ router.put('/reports/:id/status', async (req, res) => {
     res.json({ id: doc.id, ...doc.data(), status });
   } catch (error) {
     console.error('Error updating status:', error);
-    res.status(500).json({ message: 'Server Error' });
+    res.status(500).json({ message: 'Server Error', error: error.message });
   }
 });
 
@@ -109,7 +93,7 @@ router.delete('/reports/:id', async (req, res) => {
     res.json({ message: 'Report deleted successfully' });
   } catch (error) {
     console.error('Error deleting report:', error);
-    res.status(500).json({ message: 'Server Error' });
+    res.status(500).json({ message: 'Server Error', error: error.message });
   }
 });
 
@@ -134,4 +118,3 @@ router.post('/public-login', (req, res) => {
 });
 
 module.exports = router;
-
