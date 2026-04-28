@@ -125,7 +125,8 @@ function PublicForm() {
       setPreview('');
     } catch (error) {
       console.error('Error submitting form', error);
-      alert('Failed to submit report. Please make sure the backend server is running.');
+      const errorMsg = error.response?.data?.message || error.message || 'Unknown error';
+      alert(`Failed to submit report. Error: ${errorMsg}\n\nPlease check if your Firebase Service Account environment variable is set on Vercel.`);
     } finally {
       setLoading(false);
     }
