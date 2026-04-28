@@ -22,64 +22,6 @@ function Navbar() {
     location.pathname === '/login';
 
   return (
-    <>
-      {/* Google Fonts: Poppins (modern/clean) */}
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800;900&display=swap');
-
-        .navbar {
-          background: #000000 !important; /* Force black background */
-          border-bottom: 1px solid rgba(255,255,255,0.1);
-        }
-
-        .brand-text {
-          font-family: 'Outfit', sans-serif;
-          font-weight: 900;
-          font-size: 1.75rem;
-          letter-spacing: -0.01em;
-          line-height: 1;
-          text-decoration: none;
-          display: inline-block;
-          /* Sharper Indian Tricolour Gradient */
-          background: linear-gradient(to bottom, #FF9933 30%, #ffffff 30%, #ffffff 70%, #138808 70%);
-          -webkit-background-clip: text;
-          -webkit-text-fill-color: transparent;
-          filter: drop-shadow(0 1px 2px rgba(255,255,255,0.1));
-        }
-
-        .brand-link {
-          display: flex;
-          align-items: center;
-          gap: 0.85rem;
-          text-decoration: none;
-        }
-        .brand-logo {
-          width: 44px;
-          height: 44px;
-          object-fit: contain;
-          flex-shrink: 0;
-          transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
-          background: white; /* Keep logo readable */
-          border-radius: 50%;
-          padding: 2px;
-        }
-        .brand-link:hover .brand-logo {
-          transform: scale(1.1);
-        }
-
-        /* Adjust other nav elements for dark background */
-        .btn-secondary {
-          background: rgba(255,255,255,0.1) !important;
-          color: white !important;
-          border-color: rgba(255,255,255,0.2) !important;
-        }
-        .btn-secondary:hover {
-          background: rgba(255,255,255,0.2) !important;
-        }
-        .nav-actions span {
-          color: rgba(255,255,255,0.7) !important;
-        }
-      `}</style>
 
       <nav className="navbar">
         {/* Brand */}

@@ -349,21 +349,6 @@ function AdminDashboard() {
   };
   return (
     <>
-      {/* Animations keyframes injected once */}
-      <style>{`
-        @keyframes fadeIn { from{opacity:0} to{opacity:1} }
-        @keyframes slideInRight { from{transform:translateX(100%)} to{transform:translateX(0)} }
-        .report-row { transition: background 0.15s, box-shadow 0.15s; cursor: pointer; }
-        .report-row:hover { background: #f0f6ff !important; }
-        .report-row:hover .row-chevron { opacity:1; transform: translateX(2px); }
-        .row-chevron { opacity:0; transition: opacity 0.15s, transform 0.15s; }
-        .analytics-card { transition: transform 0.2s, box-shadow 0.2s; }
-        .analytics-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-xl); }
-        .filter-tab { cursor:pointer; padding:0.35rem 0.9rem; border-radius:99px; font-size:0.8rem; font-weight:600; border:1.5px solid transparent; transition: all 0.15s; }
-        .filter-tab.active { background:var(--gradient); color:#fff; }
-        .filter-tab:not(.active) { border-color:var(--border); color:var(--text-secondary); background:var(--bg-card); }
-        .filter-tab:not(.active):hover { border-color:#94a3b8; color:var(--text-primary); }
-      `}</style>
 
       {/* ── Page Header ── */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '2rem', flexWrap: 'wrap', gap: '1rem' }}>
