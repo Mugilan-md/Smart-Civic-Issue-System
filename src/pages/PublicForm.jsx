@@ -96,10 +96,15 @@ function PublicForm() {
     setLoading(true);
     const submitData = new FormData();
     Object.keys(formData).forEach(key => submitData.append(key, formData[key]));
-    if (image) submitData.append('image', image);
+    
+    if (image) {
+      // Compress image before uploading to ensure it fits in Firestore (1MB limit)
+      const compressedImage = await compressImage(image);
+      submitData.append('image', compressedImage);
+    }
 
     try {
-      const apiUrl = import.meta.env.VITE_API_URL || window.location.origin;
+      const apiUrl = window.location.origin;
       await axios.post(`${apiUrl}/api/reports`, submitData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
@@ -198,7 +203,7 @@ function PublicForm() {
                 onChange={handleChange}
                 className="form-control"
                 required
-                placeholder="John Doe"
+                placeholder="Enter your full name"
               />
             </div>
             <div className="form-group">
@@ -213,7 +218,7 @@ function PublicForm() {
                 onChange={handleChange}
                 className="form-control"
                 required
-                placeholder="9876543210"
+                placeholder="Enter 10-digit mobile number"
               />
             </div>
           </div>
@@ -410,6 +415,52 @@ function PublicForm() {
       </div>
     </div>
   );
+}
+
+
+async function compressImage(file) {
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = (event) => {
+      const img = new Image();
+      img.src = event.target.result;
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        let width = img.width;
+        let height = img.height;
+
+        // Max dimensions for compression
+        const MAX_WIDTH = 1200;
+        const MAX_HEIGHT = 1200;
+
+        if (width > height) {
+          if (width > MAX_WIDTH) {
+            height *= MAX_WIDTH / width;
+            width = MAX_WIDTH;
+          }
+        } else {
+          if (height > MAX_HEIGHT) {
+            width *= MAX_HEIGHT / height;
+            height = MAX_HEIGHT;
+          }
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+
+        // Compress to JPEG with 0.7 quality
+        canvas.toBlob((blob) => {
+          resolve(new File([blob], file.name, {
+            type: 'image/jpeg',
+            lastModified: Date.now(),
+          }));
+        }, 'image/jpeg', 0.7);
+      };
+    };
+  });
 }
 
 export default PublicForm;

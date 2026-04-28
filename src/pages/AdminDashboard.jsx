@@ -144,7 +144,7 @@ function DetailDrawer({ report, onClose, onStatusChange, onDelete }) {
         {/* image */}
         {report.image ? (
           <img
-            src={`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}${report.image}`}
+            src={report.image}
             alt={report.category}
             style={{ width: '100%', height: 220, objectFit: 'cover' }}
             onError={(e) => { e.target.style.display = 'none'; }}
@@ -284,7 +284,7 @@ function AdminDashboard() {
   const fetchReports = useCallback(async (isRefresh = false) => {
     if (isRefresh) setRefreshing(true);
     try {
-      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+      const apiUrl = window.location.origin;
       const response = await axios.get(`${apiUrl}/api/reports`);
       setReports(response.data);
     } catch (error) {
@@ -307,7 +307,7 @@ function AdminDashboard() {
 
   const updateStatus = async (id, newStatus) => {
     try {
-      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+      const apiUrl = window.location.origin;
       await axios.put(`${apiUrl}/api/reports/${id}/status`, { status: newStatus });
       setReports(prev => prev.map(r => r.id === id ? { ...r, status: newStatus } : r));
       if (selected?.id === id) setSelected(prev => ({ ...prev, status: newStatus }));
@@ -341,7 +341,7 @@ function AdminDashboard() {
   const deleteReport = async (id) => {
     if (!window.confirm('Delete this report? This cannot be undone.')) return;
     try {
-      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+      const apiUrl = window.location.origin;
       await axios.delete(`${apiUrl}/api/reports/${id}`);
       setReports(prev => prev.filter(r => r.id !== id));
       if (selected?.id === id) setSelected(null);

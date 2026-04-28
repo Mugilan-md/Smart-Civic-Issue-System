@@ -8,13 +8,17 @@ const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 10 
 
 // Create a new report
 router.post('/reports', upload.single('image'), async (req, res) => {
+  console.log('Received report submission attempt...');
   try {
     const { name, mobile, location, category, problemType, issue } = req.body;
     let imageBase64 = null;
 
     if (req.file) {
+      console.log(`Image received: ${req.file.originalname} (${req.file.size} bytes)`);
       // Convert to base64 string so it can be stored in Firestore
       imageBase64 = `data:${req.file.mimetype};base64,${req.file.buffer.toString('base64')}`;
+    } else {
+      console.log('No image attached to report.');
     }
 
     const reportData = {
@@ -30,6 +34,7 @@ router.post('/reports', upload.single('image'), async (req, res) => {
     };
 
     const docRef = await db.collection('reports').add(reportData);
+    console.log(`Report successfully saved with ID: ${docRef.id}`);
     res.status(201).json({
       message: 'Report submitted successfully',
       report: { id: docRef.id, ...reportData }
