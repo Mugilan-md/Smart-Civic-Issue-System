@@ -22,7 +22,7 @@ function Navbar() {
     location.pathname === '/login';
 
   return (
-
+    <>
       <nav className="navbar">
         {/* Brand */}
         <Link to="/" className="brand-link">

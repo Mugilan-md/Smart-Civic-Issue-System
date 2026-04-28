@@ -4,7 +4,11 @@ let serviceAccount;
 
 if (process.env.FIREBASE_SERVICE_ACCOUNT) {
   // Use environment variable in production (Vercel)
-  serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
+  try {
+    serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
+  } catch (err) {
+    console.error('❌ Failed to parse FIREBASE_SERVICE_ACCOUNT env var:', err.message);
+  }
 } else {
   // Use local file in development
   try {
