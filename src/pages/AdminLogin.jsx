@@ -26,8 +26,7 @@ function AdminLogin() {
     setError('');
     setLoading(true);
     try {
-      const apiUrl = import.meta.env.VITE_API_URL || window.location.origin;
-      const response = await axios.post(`${apiUrl}/api/login`, credentials);
+      const response = await axios.post('/api/login', credentials);
       sessionStorage.setItem('adminToken', response.data.token);
       navigate('/admin');
     } catch (err) {

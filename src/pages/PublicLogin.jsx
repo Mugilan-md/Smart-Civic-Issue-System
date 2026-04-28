@@ -26,8 +26,7 @@ function PublicLogin() {
     setError('');
     setLoading(true);
     try {
-      const apiUrl = import.meta.env.VITE_API_URL || window.location.origin;
-      const response = await axios.post(`${apiUrl}/api/public-login`, credentials);
+      const response = await axios.post('/api/public-login', credentials);
       sessionStorage.setItem('publicToken', response.data.token);
       navigate('/');
     } catch (err) {

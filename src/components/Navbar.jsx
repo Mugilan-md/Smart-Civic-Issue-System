@@ -25,7 +25,7 @@ function Navbar() {
     <>
       {/* Google Fonts: Poppins (modern/clean) */}
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800;900&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800;900&display=swap');
 
         .navbar {
           background: #000000 !important; /* Force black background */
@@ -33,15 +33,15 @@ function Navbar() {
         }
 
         .brand-text {
-          font-family: 'Poppins', sans-serif;
-          font-weight: 800;
-          font-size: 1.5rem;
+          font-family: 'Outfit', sans-serif;
+          font-weight: 900;
+          font-size: 1.75rem;
           letter-spacing: -0.01em;
           line-height: 1;
           text-decoration: none;
           display: inline-block;
-          /* Indian Tricolour Gradient */
-          background: linear-gradient(to bottom, #FF9933 25%, #ffffff 40%, #ffffff 60%, #138808 75%);
+          /* Sharper Indian Tricolour Gradient */
+          background: linear-gradient(to bottom, #FF9933 30%, #ffffff 30%, #ffffff 70%, #138808 70%);
           -webkit-background-clip: text;
           -webkit-text-fill-color: transparent;
           filter: drop-shadow(0 1px 2px rgba(255,255,255,0.1));

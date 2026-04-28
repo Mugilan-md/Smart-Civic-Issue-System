@@ -15,11 +15,20 @@ if (process.env.FIREBASE_SERVICE_ACCOUNT) {
 }
 
 if (serviceAccount) {
-  admin.initializeApp({
-    credential: admin.credential.cert(serviceAccount)
-  });
+  try {
+    if (admin.apps.length === 0) {
+      admin.initializeApp({
+        credential: admin.credential.cert(serviceAccount)
+      });
+      console.log('🔥 Firebase Admin initialized successfully');
+    }
+  } catch (err) {
+    console.error('❌ Firebase initialization error:', err.message);
+  }
+} else {
+  console.warn('⚠️ No service account provided. Firestore operations will fail.');
 }
 
-const db = admin.firestore();
+const db = admin.apps.length > 0 ? admin.firestore() : null;
 
 module.exports = db;

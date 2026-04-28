@@ -8,6 +8,9 @@ const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 10 
 
 // Create a new report
 router.post('/reports', upload.single('image'), async (req, res) => {
+  if (!db) {
+    return res.status(503).json({ message: 'Database not initialized. Please check backend logs.' });
+  }
   console.log('Received report submission attempt...');
   try {
     const { name, mobile, location, category, problemType, issue } = req.body;
@@ -47,6 +50,9 @@ router.post('/reports', upload.single('image'), async (req, res) => {
 
 // Get all reports (for Admin Dashboard)
 router.get('/reports', async (req, res) => {
+  if (!db) {
+    return res.status(503).json({ message: 'Database not initialized.' });
+  }
   try {
     const snapshot = await db.collection('reports').orderBy('createdAt', 'desc').get();
     const reports = snapshot.docs.map(doc => ({

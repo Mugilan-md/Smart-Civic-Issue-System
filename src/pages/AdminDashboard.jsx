@@ -284,8 +284,7 @@ function AdminDashboard() {
   const fetchReports = useCallback(async (isRefresh = false) => {
     if (isRefresh) setRefreshing(true);
     try {
-      const apiUrl = window.location.origin;
-      const response = await axios.get(`${apiUrl}/api/reports`);
+      const response = await axios.get('/api/reports');
       setReports(response.data);
     } catch (error) {
       console.error('Error fetching reports', error);
@@ -307,8 +306,7 @@ function AdminDashboard() {
 
   const updateStatus = async (id, newStatus) => {
     try {
-      const apiUrl = window.location.origin;
-      await axios.put(`${apiUrl}/api/reports/${id}/status`, { status: newStatus });
+      await axios.put(`/api/reports/${id}/status`, { status: newStatus });
       setReports(prev => prev.map(r => r.id === id ? { ...r, status: newStatus } : r));
       if (selected?.id === id) setSelected(prev => ({ ...prev, status: newStatus }));
     } catch (error) {
@@ -341,8 +339,7 @@ function AdminDashboard() {
   const deleteReport = async (id) => {
     if (!window.confirm('Delete this report? This cannot be undone.')) return;
     try {
-      const apiUrl = window.location.origin;
-      await axios.delete(`${apiUrl}/api/reports/${id}`);
+      await axios.delete(`/api/reports/${id}`);
       setReports(prev => prev.filter(r => r.id !== id));
       if (selected?.id === id) setSelected(null);
     } catch (error) {

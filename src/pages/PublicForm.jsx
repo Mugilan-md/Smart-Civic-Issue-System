@@ -100,12 +100,16 @@ function PublicForm() {
     if (image) {
       // Compress image before uploading to ensure it fits in Firestore (1MB limit)
       const compressedImage = await compressImage(image);
+      if (compressedImage.size > 1024 * 1024) {
+        alert('Image is too large. Even after compression, it exceeds 1MB. Please use a smaller image.');
+        setLoading(false);
+        return;
+      }
       submitData.append('image', compressedImage);
     }
 
     try {
-      const apiUrl = window.location.origin;
-      await axios.post(`${apiUrl}/api/reports`, submitData, {
+      await axios.post('/api/reports', submitData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
       setSuccess(true);
@@ -451,13 +455,13 @@ async function compressImage(file) {
         const ctx = canvas.getContext('2d');
         ctx.drawImage(img, 0, 0, width, height);
 
-        // Compress to JPEG with 0.7 quality
+        // Compress to JPEG with 0.6 quality (slightly lower to ensure < 1MB)
         canvas.toBlob((blob) => {
           resolve(new File([blob], file.name, {
             type: 'image/jpeg',
             lastModified: Date.now(),
           }));
-        }, 'image/jpeg', 0.7);
+        }, 'image/jpeg', 0.6);
       };
     };
   });
