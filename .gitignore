@@ -24,3 +24,6 @@ dist-ssr
 *.sw?
 
 .vercel
+
+# Firebase private key
+api/serviceAccountKey.json
