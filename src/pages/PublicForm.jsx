@@ -126,7 +126,8 @@ function PublicForm() {
     } catch (error) {
       console.error('Error submitting form', error);
       const errorMsg = error.response?.data?.message || error.message || 'Unknown error';
-      alert(`Failed to submit report. Error: ${errorMsg}\n\nPlease check if your Firebase Service Account environment variable is set on Vercel.`);
+      const details = error.response?.data?.error ? `\nDetails: ${error.response.data.error}` : '';
+      alert(`Failed to submit report. Error: ${errorMsg}${details}\n\nPlease check if your Firebase Service Account environment variable is set on Vercel.`);
     } finally {
       setLoading(false);
     }

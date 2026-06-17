@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "scripts": {
     "dev": "vite",
-    "backend": "node backend/server.js",
+    "backend": "node api/index.js",
     "start-all": "npx concurrently \"npm run dev\" \"npm run backend\"",
     "build": "npx vite build",
     "preview": "vite preview"
