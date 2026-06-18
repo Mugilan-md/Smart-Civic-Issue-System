@@ -109,8 +109,12 @@ function PublicForm() {
     }
 
     try {
+      const token = sessionStorage.getItem('publicToken');
       await axios.post('/api/reports', submitData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
+        headers: { 
+          'Content-Type': 'multipart/form-data',
+          'Authorization': `Bearer ${token}`
+        }
       });
       setSuccess(true);
       setFormData({

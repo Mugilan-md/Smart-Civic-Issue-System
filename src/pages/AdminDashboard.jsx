@@ -284,7 +284,10 @@ function AdminDashboard() {
   const fetchReports = useCallback(async (isRefresh = false) => {
     if (isRefresh) setRefreshing(true);
     try {
-      const response = await axios.get('/api/reports');
+      const token = sessionStorage.getItem('adminToken');
+      const response = await axios.get('/api/reports', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
       setReports(response.data);
     } catch (error) {
       console.error('Error fetching reports', error);
@@ -306,7 +309,10 @@ function AdminDashboard() {
 
   const updateStatus = async (id, newStatus) => {
     try {
-      await axios.put(`/api/reports/${id}/status`, { status: newStatus });
+      const token = sessionStorage.getItem('adminToken');
+      await axios.put(`/api/reports/${id}/status`, { status: newStatus }, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
       setReports(prev => prev.map(r => r.id === id ? { ...r, status: newStatus } : r));
       if (selected?.id === id) setSelected(prev => ({ ...prev, status: newStatus }));
     } catch (error) {
@@ -339,7 +345,10 @@ function AdminDashboard() {
   const deleteReport = async (id) => {
     if (!window.confirm('Delete this report? This cannot be undone.')) return;
     try {
-      await axios.delete(`/api/reports/${id}`);
+      const token = sessionStorage.getItem('adminToken');
+      await axios.delete(`/api/reports/${id}`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
       setReports(prev => prev.filter(r => r.id !== id));
       if (selected?.id === id) setSelected(null);
     } catch (error) {

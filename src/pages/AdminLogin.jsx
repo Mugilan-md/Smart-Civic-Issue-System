@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import { signInWithEmailAndPassword } from 'firebase/auth';
+import { auth } from '../firebaseConfig';
 import { Lock, User, Eye, EyeOff, Shield, ArrowRight, AlertCircle } from 'lucide-react';
 
 function AdminLogin() {
@@ -26,11 +27,21 @@ function AdminLogin() {
     setError('');
     setLoading(true);
     try {
-      const response = await axios.post('/api/login', credentials);
-      sessionStorage.setItem('adminToken', response.data.token);
+      const userCredential = await signInWithEmailAndPassword(auth, credentials.username, credentials.password);
+      if (credentials.username !== 'admin@civic.com') {
+        await auth.signOut();
+        throw new Error('Unauthorized');
+      }
+      const token = await userCredential.user.getIdToken();
+      sessionStorage.setItem('adminToken', token);
       navigate('/admin');
     } catch (err) {
-      setError('Invalid username or password. Please try again.');
+      console.error(err);
+      if (err.message === 'Unauthorized') {
+        setError('Access denied. Only the administrator account is authorized.');
+      } else {
+        setError('Invalid admin credentials. Please try again.');
+      }
     } finally {
       setLoading(false);
     }
@@ -77,17 +88,17 @@ function AdminLogin() {
           <div className="form-group">
             <label className="form-label">
               <span style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
-                <User size={13} /> Username
+                <User size={13} /> Admin Email
               </span>
             </label>
             <input
-              type="text"
+              type="email"
               name="username"
               value={credentials.username}
               onChange={handleChange}
               className="form-control"
               required
-              placeholder="Enter your username"
+              placeholder="admin@civic.com"
               autoComplete="username"
             />
           </div>

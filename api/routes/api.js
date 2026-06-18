@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const multer = require('multer');
+const verifyToken = require('../middleware/auth');
 
 // Use memory storage (Vercel filesystem is read-only)
 const upload = multer({
@@ -19,7 +20,7 @@ function getDb() {
 }
 
 // ── POST /api/reports ─────────────────────────────────────────────────────────
-router.post('/reports', upload.single('image'), async (req, res) => {
+router.post('/reports', verifyToken, upload.single('image'), async (req, res) => {
   const db = getDb();
   if (!db) {
     return res.status(503).json({ message: 'Database not initialized. Please set FIREBASE_SERVICE_ACCOUNT in Vercel environment variables.' });
@@ -55,7 +56,7 @@ router.post('/reports', upload.single('image'), async (req, res) => {
 });
 
 // ── GET /api/reports ──────────────────────────────────────────────────────────
-router.get('/reports', async (req, res) => {
+router.get('/reports', verifyToken, async (req, res) => {
   const db = getDb();
   if (!db) {
     return res.status(503).json({ message: 'Database not initialized.' });
@@ -75,7 +76,7 @@ router.get('/reports', async (req, res) => {
 });
 
 // ── PUT /api/reports/:id/status ───────────────────────────────────────────────
-router.put('/reports/:id/status', async (req, res) => {
+router.put('/reports/:id/status', verifyToken, async (req, res) => {
   const db = getDb();
   if (!db) return res.status(503).json({ message: 'Database not initialized.' });
   try {
@@ -95,7 +96,7 @@ router.put('/reports/:id/status', async (req, res) => {
 });
 
 // ── DELETE /api/reports/:id ───────────────────────────────────────────────────
-router.delete('/reports/:id', async (req, res) => {
+router.delete('/reports/:id', verifyToken, async (req, res) => {
   const db = getDb();
   if (!db) return res.status(503).json({ message: 'Database not initialized.' });
   try {
@@ -109,25 +110,4 @@ router.delete('/reports/:id', async (req, res) => {
     res.status(500).json({ message: 'Server Error', error: error.message });
   }
 });
-
-// ── POST /api/login (Admin) ───────────────────────────────────────────────────
-router.post('/login', (req, res) => {
-  const { username, password } = req.body;
-  if (username === 'mugi123' && password === '123456789') {
-    res.json({ message: 'Login successful', token: 'fake-jwt-token' });
-  } else {
-    res.status(401).json({ message: 'Invalid credentials' });
-  }
-});
-
-// ── POST /api/public-login ────────────────────────────────────────────────────
-router.post('/public-login', (req, res) => {
-  const { username, password } = req.body;
-  if (username === 'publicorg' && password === 'public777') {
-    res.json({ message: 'Public login successful', token: 'public-access-token' });
-  } else {
-    res.status(401).json({ message: 'Invalid community credentials' });
-  }
-});
-
 module.exports = router;

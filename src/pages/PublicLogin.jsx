@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import { signInWithEmailAndPassword } from 'firebase/auth';
+import { auth } from '../firebaseConfig';
 import { Users, User, Lock, Eye, EyeOff, ArrowRight, AlertCircle, Shield } from 'lucide-react';
 
 function PublicLogin() {
@@ -26,10 +27,12 @@ function PublicLogin() {
     setError('');
     setLoading(true);
     try {
-      const response = await axios.post('/api/public-login', credentials);
-      sessionStorage.setItem('publicToken', response.data.token);
+      const userCredential = await signInWithEmailAndPassword(auth, credentials.username, credentials.password);
+      const token = await userCredential.user.getIdToken();
+      sessionStorage.setItem('publicToken', token);
       navigate('/');
     } catch (err) {
+      console.error(err);
       setError('Invalid community credentials. Please try again.');
     } finally {
       setLoading(false);
@@ -96,17 +99,17 @@ function PublicLogin() {
           <div className="form-group">
             <label className="form-label">
               <span style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
-                <User size={13} /> Community Username
+                <User size={13} /> Community Email
               </span>
             </label>
             <input
-              type="text"
+              type="email"
               name="username"
               value={credentials.username}
               onChange={handleChange}
               className="form-control"
               required
-              placeholder="Enter community username"
+              placeholder="citizen@civic.com"
               autoComplete="username"
               autoFocus
             />
