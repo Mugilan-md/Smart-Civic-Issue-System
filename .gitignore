@@ -27,3 +27,6 @@ dist-ssr
 
 # Firebase private key
 api/serviceAccountKey.json
+
+# Environment variables
+.env
