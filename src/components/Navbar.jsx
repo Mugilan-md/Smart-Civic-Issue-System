@@ -33,7 +33,7 @@ function Navbar() {
             onError={(e) => { e.target.style.display = 'none'; }}
           />
           <span className="brand-text">
-            civiX.Ai
+            SmartCivic
           </span>
         </Link>
 
