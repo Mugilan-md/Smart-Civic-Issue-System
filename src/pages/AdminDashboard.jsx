@@ -303,9 +303,33 @@ function AdminDashboard() {
 
   useEffect(() => {
     const token = sessionStorage.getItem('adminToken');
-    if (!token) { navigate('/login'); return; }
-    fetchReports();
-  }, [navigate, fetchReports]);
+    if (!token) {
+      navigate('/login');
+      return;
+    }
+    let isSubscribed = true;
+    axios.get('/api/reports', {
+      headers: { 'Authorization': `Bearer ${token}` }
+    }).then(response => {
+      if (isSubscribed) {
+        setReports(response.data);
+        setLoading(false);
+      }
+    }).catch(error => {
+      console.error('Error fetching reports', error);
+      if (error.response?.status === 401) {
+        sessionStorage.removeItem('adminToken');
+        navigate('/login');
+      }
+      if (isSubscribed) setLoading(false);
+    });
+
+    return () => {
+      isSubscribed = false;
+    };
+  }, [navigate]);
+
+
 
   const updateStatus = async (id, newStatus) => {
     try {

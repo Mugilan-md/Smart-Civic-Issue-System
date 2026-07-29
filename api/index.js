@@ -1,6 +1,5 @@
 const express = require('express');
 const cors = require('cors');
-const path = require('path');
 
 const app = express();
 
@@ -24,10 +23,11 @@ app.use((req, res) => {
 });
 
 // ── Global error handler ──────────────────────────────────────────────────────
-app.use((err, req, res, next) => {
+app.use((err, req, res, _next) => {
   console.error('Unhandled error:', err);
   res.status(500).json({ message: 'Internal server error', error: err.message });
 });
+
 
 // ── Dev server (not used by Vercel) ──────────────────────────────────────────
 if (process.env.NODE_ENV !== 'production') {

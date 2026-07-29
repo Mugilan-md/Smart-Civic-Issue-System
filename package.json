@@ -1,6 +1,7 @@
 {
   "name": "smart-civic-system",
   "version": "1.0.0",
+  "type": "module",
   "scripts": {
     "dev": "vite",
     "backend": "node api/index.js",
